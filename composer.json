@@ -24,7 +24,7 @@
     },
     "autoload": {
         "psr-4": {
-            "TypiCMS\\Modules\\TransDB": "src"
+            "TypiCMS\\Modules\\TransDB\\": "src"
         },
         "classmap": [
             "tests"
