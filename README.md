@@ -1,5 +1,7 @@
 <h1 align="center">TypiCMS TransBD</h1>
 
+Based on [themsaid/laravel-langman](https://github.com/themsaid/laravel-langman)
+
 ## Installation
 
 Begin by installing the package through Composer. Run the following command in your terminal:
