@@ -79,7 +79,7 @@ class TranslaionSync extends Command
                 $fileContent = $this->manager->getFileContent($path);
 
                 if (isset($allKeysInFiles[$fileName])) {
-                    $missingKeys = array_diff($allKeysInFiles[$fileName], array_keys(array_dot($fileContent)));
+                    $missingKeys = array_diff($allKeysInFiles[$fileName], array_keys(Arr::dot($fileContent)));
 
                     foreach ($missingKeys as $i => $missingKey) {
                         if (Arr::has($fileContent, $missingKey)) {
@@ -96,7 +96,7 @@ class TranslaionSync extends Command
             $repository = new EloquentTranslation();
             foreach (locales() as $locale){
                 $dbContent = $repository->allToArray($locale, 'db');
-                $missingKeys = array_diff($allKeysInFiles[$db_group], array_keys(array_dot($dbContent)));
+                $missingKeys = array_diff($allKeysInFiles[$db_group], array_keys(Arr::dot($dbContent)));
                 $translations = array_map(function($val) use($db_group){
                     return ['group'=>$db_group, 'key'=>$val,
                         'translation'=>json_encode(array_combine(array_keys(array_flip(locales())),
