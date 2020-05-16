@@ -4,9 +4,9 @@ namespace TypiCMS\Modules\TransDB\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
 use TypiCMS\Modules\TransDB\TranslationManager;
 use TypiCMS\Modules\Translations\Models\Translation;
-use TypiCMS\Modules\Translations\Repositories\EloquentTranslation;
 
 class TranslaionSync extends Command
 {
@@ -93,9 +93,11 @@ class TranslaionSync extends Command
         $db_group = 'db';
         if (isset($allKeysInFiles[$db_group])) {
             $this->info('Adding database translations...');
-            $repository = new EloquentTranslation();
             foreach (locales() as $locale){
-                $dbContent = $repository->allToArray($locale, 'db');
+                $dbContent = Translation::select(DB::raw("JSON_UNQUOTE(JSON_EXTRACT(`translation`, '$.".$locale."')) AS translated"), 'key')
+                    ->where('group', 'db')
+                    ->pluck('translated', 'key')
+                    ->all();
                 $missingKeys = array_diff($allKeysInFiles[$db_group], array_keys(Arr::dot($dbContent)));
                 $translations = array_map(function($val) use($db_group){
                     return ['group'=>$db_group, 'key'=>$val,
