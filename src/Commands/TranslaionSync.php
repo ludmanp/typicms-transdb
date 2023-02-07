@@ -6,7 +6,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use TypiCMS\Modules\TransDB\TranslationManager;
-use TypiCMS\Modules\Translations\Models\Translation;
+use TypiCMS\Modules\Core\Models\Translation;
 
 class TranslaionSync extends Command
 {
@@ -72,7 +72,7 @@ class TranslaionSync extends Command
         $this->info('Reading translation keys from files...');
 
         // An array of all translation keys as found in project files.
-        $allKeysInFiles = $this->manager->collectFromFiles();
+        $allKeysInFiles = $this->manager->collectFromFiles(array_keys($translationFiles));
 
         foreach ($translationFiles as $fileName => $languages) {
             foreach ($languages as $languageKey => $path) {
@@ -95,15 +95,14 @@ class TranslaionSync extends Command
             $this->info('Adding database translations...');
             foreach (locales() as $locale){
                 $dbContent = Translation::select(DB::raw("JSON_UNQUOTE(JSON_EXTRACT(`translation`, '$.".$locale."')) AS translated"), 'key')
-                    ->where('group', 'db')
                     ->pluck('translated', 'key')
                     ->all();
                 $missingKeys = array_diff($allKeysInFiles[$db_group], array_keys(Arr::dot($dbContent)));
-                $translations = array_map(function($val) use($db_group){
-                    return ['group'=>$db_group, 'key'=>$val,
+                $translations = array_map(function($val) {
+                    return ['key'=>$val,
                         'translation'=>json_encode(array_combine(array_keys(array_flip(locales())),
                             array_map(function ($loc) use($val) {
-                                return "db.".$val;
+                                return $val;
                             }, locales())))];
                 }, $missingKeys);
                 Translation::insert($translations);

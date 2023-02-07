@@ -271,7 +271,7 @@ class TranslationManager
      *
      * @return array
      */
-    public function collectFromFiles()
+    public function collectFromFiles($translationFiles)
     {
         $translationKeys = [];
 
@@ -280,7 +280,12 @@ class TranslationManager
                 try {
                     list($fileName, $keyName) = explode('.', $key, 2);
                 } catch (\ErrorException $e) {
-                    continue;
+                    $fileName = 'db';
+                    $keyName = $key;
+                }
+                if(!$keyName || (!in_array($fileName, $translationFiles))) {
+                    $fileName = 'db';
+                    $keyName = $key;
                 }
 
                 if (isset($translationKeys[$fileName]) && in_array($keyName, $translationKeys[$fileName])) {
@@ -318,8 +323,9 @@ class TranslationManager
             "\(".// Match opening parentheses
             "[\'\"]".// Match " or '
             '('.// Start a new group to match:
-            '[a-zA-Z0-9_-]+'.// Must start with group
-            "([.][^\1)$]+)+".// Be followed by one or more items/keys
+//            '[a-zA-Z0-9_-]+'.// Must start with group
+//            "([.][^\1)$]+)+".// Be followed by one or more items/keys
+            "[^\'\"]+".
             ')'.// Close group
             "[\'\"]".// Closing quote
             "[\),]"  // Close parentheses or new parameter
@@ -329,7 +335,23 @@ class TranslationManager
 
         /** @var \Symfony\Component\Finder\SplFileInfo $file */
         foreach ($this->disk->allFiles($this->syncPaths) as $file) {
+            if(preg_match('/\/views\/vendor\/[a-z-_]+\/admin\//', $file)) {
+                continue;
+            }
+            if(strstr($file, '/vendor/dashboard/') !== false) {
+                continue;
+            }
+            if(strstr($file, 'Composers/SidebarViewComposer.php') !== false) {
+                continue;
+            }
+            if(strstr($file, 'AdminController') !== false) {
+                continue;
+            }
+            if(strstr($file, 'ApiController') !== false) {
+                continue;
+            }
             if (preg_match_all("/$pattern/siU", $file->getContents(), $matches)) {
+//                echo $file . ' => ' . json_encode($matches[2]) . PHP_EOL;
                 $allMatches[$file->getRelativePathname()] = $matches[2];
             }
         }
